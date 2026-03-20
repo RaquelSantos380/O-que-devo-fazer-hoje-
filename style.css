@@ -1,40 +1,75 @@
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    -webkit-tap-highlight-color: transparent; /* Remove fundo cinza ao tocar */
-}
+/* Correções e adições */
 
-body {
-    font-family: 'Quicksand', sans-serif;
-    background: linear-gradient(145deg, #faf0f5 0%, #f5eaf0 100%);
-    min-height: 100vh;
-    min-height: -webkit-fill-available; /* CORREÇÃO 2: Altura correta no mobile */
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    color: #3a3a3a;
-    padding: 12px;
-}
-
-html {
-    height: -webkit-fill-available;
-}
-
-.app-container {
-    max-width: 450px;
-    width: 100%;
-    background-color: #ffffff;
-    border-radius: 32px;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.02);
-    overflow: hidden;
+.mensagem-vazia {
+    text-align: center;
+    padding: 30px 20px;
+    background-color: #fef9fb;
+    border-radius: 20px;
     border: 1px solid #ffe4ec;
-    position: relative;
-    height: auto;
-    max-height: calc(100vh - 24px);
-    max-height: calc(100dvh - 24px); /* CORREÇÃO 3: Usa dynamic viewport */
-    display: flex;
-    flex-direction: column;
+    color: #b28b98;
+}
+
+.mensagem-vazia i {
+    font-size: 32px;
+    color: #d48b9f;
+    margin-bottom: 12px;
+    display: block;
+}
+
+.mensagem-vazia p {
+    margin-bottom: 8px;
+}
+
+.mensagem-vazia small {
+    font-size: 12px;
+    opacity: 0.7;
+}
+
+.sem-tarefas-dia {
+    text-align: center;
+    padding: 12px;
+    color: #b28b98;
+    font-size: 13px;
+    background-color: #fef9fb;
+    border-radius: 16px;
+}
+
+.dia-card.selected {
+    border: 2px solid #ffb6c1;
+    background-color: #fff9fc;
+}
+
+/* Feedback visual para botões */
+button {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+button:active {
+    transform: scale(0.96);
+}
+
+/* Melhorias para o modal */
+.modal-content input:focus,
+.modal-content textarea:focus {
+    outline: none;
+    border-color: #ffb6c1;
+    box-shadow: 0 0 0 3px rgba(255, 182, 193, 0.2);
+}
+
+/* Espaçamento para o dia selecionado no card */
+.dia-card-header {
+    background: transparent;
+}
+
+.btn-add-tarefa-dia {
+    transition: all 0.2s ease;
+}
+
+.btn-add-tarefa-dia:active {
+    transform: scale(0.9);
+    background-color: #ffd9e4;
+    }    flex-direction: column;
 }
 
 /* Header */
