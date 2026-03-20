@@ -2,39 +2,143 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>minhas tarefas</title>
+    <!-- CORREÇÃO 1: Viewport correto para mobile -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>Cantinho das Tarefas</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
-    <div class="container">
-        <!-- Cabeçalho -->
-        <div class="header">
-            <h1 class="titulo">minhas tarefas</h1>
-            <button class="btn-editar" id="btnEditar">✎</button>
-        </div>
+    <div class="app-container">
+        <!-- Cabeçalho com navegação -->
+        <header class="app-header">
+            <h1 class="app-title">🌷 cantinho das tarefas</h1>
+            <div class="header-nav">
+                <button class="nav-btn active" data-page="hoje">
+                    <i class="fas fa-sun"></i>
+                    <span>hoje</span>
+                </button>
+                <button class="nav-btn" data-page="semana">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>semana</span>
+                </button>
+            </div>
+        </header>
 
-        <!-- Tela Principal (tarefas de hoje) -->
-        <div id="telaPrincipal" class="tela ativa">
-            <div class="data-container">
-                <h2 id="dataAtual" class="data"></h2>
-                <p class="subtitulo">suas tarefas de hoje</p>
+        <!-- PÁGINA HOJE (Principal) -->
+        <main id="page-hoje" class="page active">
+            <!-- Dia atual -->
+            <div class="dia-destaque">
+                <h2 id="dia-atual" class="dia-titulo">Segunda-feira</h2>
+                <p class="dia-data" id="data-atual">18 de março de 2026</p>
             </div>
 
-            <div class="tarefas-lista" id="tarefasHoje">
-                <!-- As tarefas serão inseridas aqui pelo JavaScript -->
-            </div>
-        </div>
+            <!-- Lista de tarefas do dia -->
+            <section class="section-tarefas">
+                <div class="section-header">
+                    <h3><i class="fas fa-check-circle"></i> tarefas de hoje</h3>
+                    <button class="btn-add-tarefa" id="btn-add-tarefa-hoje">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+                
+                <div id="lista-tarefas-hoje" class="tarefas-lista">
+                    <!-- As tarefas serão inseridas aqui pelo JavaScript -->
+                </div>
+            </section>
 
-        <!-- Tela de Edição (gerenciar semana) -->
-        <div id="telaEdicao" class="tela">
-            <h2 class="titulo-edicao">✎ editar tarefas da semana</h2>
+            <!-- Cantinho da Gratidão -->
+            <section class="section-gratidao">
+                <div class="section-header">
+                    <h3><i class="fas fa-heart"></i> cantinho da gratidão</h3>
+                    <button class="btn-add-foto" id="btn-add-foto">
+                        <i class="fas fa-camera"></i>
+                    </button>
+                </div>
+                
+                <div id="galeria-gratidao" class="gratidao-grid">
+                    <!-- As fotos serão inseridas aqui -->
+                </div>
+            </section>
+        </main>
+
+        <!-- PÁGINA SEMANA (Visão Completa) -->
+        <main id="page-semana" class="page">
+            <h2 class="page-subtitle"><i class="fas fa-calendar-week"></i> organização da semana</h2>
             
-            <div class="dias-semana">
-                <button class="dia-btn" data-dia="Seg">Seg</button>
-                <button class="dia-btn" data-dia="Ter">Ter</button>
-                <button class="dia-btn" data-dia="Qua">Qua</button>
+            <div class="dias-container" id="dias-semana-container">
+                <!-- Cards dos dias serão gerados aqui -->
+            </div>
+        </main>
+
+        <!-- Modal para adicionar tarefa -->
+        <div id="modal-tarefa" class="modal">
+            <div class="modal-content">
+                <h3><i class="fas fa-pen"></i> nova tarefa</h3>
+                <input type="text" id="input-tarefa-descricao" placeholder="O que precisa fazer?">
+                <input type="time" id="input-tarefa-horario" placeholder="Horário (opcional)">
+                <div class="modal-botoes">
+                    <button class="btn-cancelar" id="btn-cancelar-tarefa">cancelar</button>
+                    <button class="btn-salvar" id="btn-salvar-tarefa">salvar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal para adicionar foto -->
+        <div id="modal-foto" class="modal">
+            <div class="modal-content">
+                <h3><i class="fas fa-camera-retro"></i> momento especial</h3>
+                
+                <div class="upload-area" id="upload-area">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <p>clique para selecionar uma foto</p>
+                    <input type="file" id="input-foto" accept="image/*" hidden>
+                </div>
+                
+                <textarea id="input-legenda" placeholder="escreva uma legenda especial..." rows="3"></textarea>
+                
+                <div class="modal-botoes">
+                    <button class="btn-cancelar" id="btn-cancelar-foto">cancelar</button>
+                    <button class="btn-salvar" id="btn-salvar-foto">salvar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal para editar/excluir tarefa -->
+        <div id="modal-opcoes-tarefa" class="modal">
+            <div class="modal-content small">
+                <h3><i class="fas fa-ellipsis-h"></i> opções</h3>
+                <button class="modal-opcao" id="opcao-editar">
+                    <i class="fas fa-edit"></i> editar
+                </button>
+                <button class="modal-opcao" id="opcao-excluir">
+                    <i class="fas fa-trash"></i> excluir
+                </button>
+                <button class="modal-opcao cancel" id="opcao-cancelar">
+                    cancelar
+                </button>
+            </div>
+        </div>
+
+        <!-- Modal para visualizar foto -->
+        <div id="modal-ver-foto" class="modal">
+            <div class="modal-content foto-modal">
+                <img id="foto-expandida" src="" alt="Momento especial">
+                <p id="foto-legenda"></p>
+                <button class="btn-fechar" id="btn-fechar-foto">
+                    <i class="fas fa-times"></i>
+                </button>
+                <button class="btn-delete-foto" id="btn-deletar-foto">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+    </html>                <button class="dia-btn" data-dia="Qua">Qua</button>
                 <button class="dia-btn" data-dia="Qui">Qui</button>
                 <button class="dia-btn" data-dia="Sex">Sex</button>
                 <button class="dia-btn" data-dia="Sáb">Sáb</button>
