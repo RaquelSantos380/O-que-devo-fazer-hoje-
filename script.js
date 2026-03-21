@@ -1,11 +1,8 @@
 // ============================================
-// APP TAREFAS + GRATIDÃO - VERSÃO CORRIGIDA
+// APP TAREFAS + GRATIDÃO - VERSÃO FINAL CORRIGIDA
 // ============================================
 
-// ============================================
-// 1. DADOS E CONFIGURAÇÕES
-// ============================================
-
+// DADOS
 let tarefas = JSON.parse(localStorage.getItem('tarefas')) || {
     'Segunda': [],
     'Terça': [],
@@ -16,43 +13,34 @@ let tarefas = JSON.parse(localStorage.getItem('tarefas')) || {
     'Domingo': []
 };
 
-let momentosGratidao = JSON.parse(localStorage.getItem('momentos')) || [];
+let momentos = JSON.parse(localStorage.getItem('momentos')) || [];
 
 const diasSemana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
-const diasAbrev = {
-    'Segunda': 'Seg',
-    'Terça': 'Ter',
-    'Quarta': 'Qua',
-    'Quinta': 'Qui',
-    'Sexta': 'Sex',
-    'Sábado': 'Sáb',
-    'Domingo': 'Dom'
-};
 
-// ============================================
-// 2. ELEMENTOS DO DOM
-// ============================================
-
+// ELEMENTOS
 const pageHoje = document.getElementById('page-hoje');
 const pageSemana = document.getElementById('page-semana');
 const navBtns = document.querySelectorAll('.nav-btn');
 const diaTitulo = document.getElementById('dia-atual');
 const dataAtual = document.getElementById('data-atual');
 const listaTarefasHoje = document.getElementById('lista-tarefas-hoje');
-const galeriaGratidao = document.getElementById('galeria-gratidao');
+const galeria = document.getElementById('galeria-gratidao');
 const diasContainer = document.getElementById('dias-semana-container');
 
+// MODAIS
 const modalTarefa = document.getElementById('modal-tarefa');
 const modalFoto = document.getElementById('modal-foto');
 const modalOpcoes = document.getElementById('modal-opcoes-tarefa');
 const modalVerFoto = document.getElementById('modal-ver-foto');
 
-const inputTarefaDescricao = document.getElementById('input-tarefa-descricao');
-const inputTarefaHorario = document.getElementById('input-tarefa-horario');
+// INPUTS
+const inputDescricao = document.getElementById('input-tarefa-descricao');
+const inputHorario = document.getElementById('input-tarefa-horario');
 const btnCancelarTarefa = document.getElementById('btn-cancelar-tarefa');
 const btnSalvarTarefa = document.getElementById('btn-salvar-tarefa');
-const btnAddTarefaHoje = document.getElementById('btn-add-tarefa-hoje');
+const btnAddTarefa = document.getElementById('btn-add-tarefa-hoje');
 
+// FOTOS
 const btnAddFoto = document.getElementById('btn-add-foto');
 const uploadArea = document.getElementById('upload-area');
 const inputFoto = document.getElementById('input-foto');
@@ -60,50 +48,33 @@ const inputLegenda = document.getElementById('input-legenda');
 const btnCancelarFoto = document.getElementById('btn-cancelar-foto');
 const btnSalvarFoto = document.getElementById('btn-salvar-foto');
 
+// OPÇÕES
 const opcaoEditar = document.getElementById('opcao-editar');
 const opcaoExcluir = document.getElementById('opcao-excluir');
 const opcaoCancelar = document.getElementById('opcao-cancelar');
 
+// VISUALIZAR FOTO
 const fotoExpandida = document.getElementById('foto-expandida');
 const fotoLegenda = document.getElementById('foto-legenda');
 const btnFecharFoto = document.getElementById('btn-fechar-foto');
 const btnDeletarFoto = document.getElementById('btn-deletar-foto');
 
-// ============================================
-// 3. ESTADO DO APP (CORRIGIDO)
-// ============================================
-
-let diaSelecionado = localStorage.getItem('diaSelecionado') || 'Segunda'; // CRÍTICO: Estado do dia
-let tarefaEditando = null;
+// ESTADO
 let diaEditando = null;
+let tarefaEditando = null;
 let fotoEditando = null;
-let momentoIndexAtual = null;
+let momentoIndex = null;
 
-// ============================================
-// 4. INICIALIZAÇÃO
-// ============================================
-
+// ========== INICIALIZAÇÃO ==========
 document.addEventListener('DOMContentLoaded', () => {
     atualizarData();
     renderizarTarefasHoje();
-    renderizarGratidao();
-    renderizarDiasSemana();
-    configurarNavegacao();
-    configurarModais();
+    renderizarGaleria();
+    renderizarSemana();
     
-    // Atualizar data a cada minuto
-    setInterval(atualizarData, 60000);
-    
-    console.log('App iniciado! Dia selecionado:', diaSelecionado);
-});
-
-// ============================================
-// 5. CONFIGURAÇÕES
-// ============================================
-
-function configurarNavegacao() {
+    // Navegação
     navBtns.forEach(btn => {
-        btn.addEventListener('click', (e) => {
+        btn.addEventListener('click', () => {
             navBtns.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             
@@ -114,19 +85,18 @@ function configurarNavegacao() {
             } else {
                 pageHoje.classList.remove('active');
                 pageSemana.classList.add('active');
-                renderizarDiasSemana();
+                renderizarSemana();
             }
         });
     });
-}
-
-function configurarModais() {
-    // Modal de tarefa
-    btnAddTarefaHoje.addEventListener('click', () => {
-        diaEditando = diasSemana[new Date().getDay()];
+    
+    // Modal tarefa
+    btnAddTarefa.addEventListener('click', () => {
+        const hoje = diasSemana[new Date().getDay()];
+        diaEditando = hoje;
         tarefaEditando = null;
-        inputTarefaDescricao.value = '';
-        inputTarefaHorario.value = '';
+        inputDescricao.value = '';
+        inputHorario.value = '';
         modalTarefa.classList.add('active');
     });
     
@@ -136,7 +106,7 @@ function configurarModais() {
     
     btnSalvarTarefa.addEventListener('click', salvarTarefa);
     
-    // Modal de foto
+    // Modal foto
     btnAddFoto.addEventListener('click', () => {
         inputLegenda.value = '';
         modalFoto.classList.add('active');
@@ -146,25 +116,27 @@ function configurarModais() {
         inputFoto.click();
     });
     
-    inputFoto.addEventListener('change', handleFotoSelecionada);
+    inputFoto.addEventListener('change', (e) => {
+        if (e.target.files && e.target.files[0]) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                fotoEditando = event.target.result;
+                uploadArea.innerHTML = `<img src="${fotoEditando}" style="width:100%; border-radius:20px; max-height:200px;">`;
+            };
+            reader.readAsDataURL(e.target.files[0]);
+        }
+    });
     
     btnCancelarFoto.addEventListener('click', () => {
         modalFoto.classList.remove('active');
         fotoEditando = null;
         inputFoto.value = '';
-        resetarUploadArea();
+        uploadArea.innerHTML = '<i class="fas fa-cloud-upload-alt"></i><p>clique para selecionar uma foto</p>';
     });
     
     btnSalvarFoto.addEventListener('click', salvarMomento);
     
-    // Modal de visualização de foto
-    btnFecharFoto.addEventListener('click', () => {
-        modalVerFoto.classList.remove('active');
-    });
-    
-    btnDeletarFoto.addEventListener('click', deletarMomentoAtual);
-    
-    // Opções da tarefa
+    // Opções tarefa
     opcaoCancelar.addEventListener('click', () => {
         modalOpcoes.classList.remove('active');
     });
@@ -172,26 +144,41 @@ function configurarModais() {
     opcaoEditar.addEventListener('click', () => {
         modalOpcoes.classList.remove('active');
         if (tarefaEditando) {
-            inputTarefaDescricao.value = tarefaEditando.descricao;
-            inputTarefaHorario.value = tarefaEditando.horario || '';
+            inputDescricao.value = tarefaEditando.descricao;
+            inputHorario.value = tarefaEditando.horario || '';
             modalTarefa.classList.add('active');
         }
     });
     
-    opcaoExcluir.addEventListener('click', excluirTarefa);
-}
+    opcaoExcluir.addEventListener('click', () => {
+        modalOpcoes.classList.remove('active');
+        if (tarefaEditando && diaEditando) {
+            const index = tarefas[diaEditando].findIndex(t => t.id === tarefaEditando.id);
+            if (index !== -1) {
+                tarefas[diaEditando].splice(index, 1);
+                salvarTarefas();
+                renderizarTarefasHoje();
+                renderizarSemana();
+            }
+        }
+    });
+    
+    // Modal visualizar foto
+    btnFecharFoto.addEventListener('click', () => {
+        modalVerFoto.classList.remove('active');
+    });
+    
+    btnDeletarFoto.addEventListener('click', () => {
+        if (momentoIndex !== null) {
+            momentos.splice(momentoIndex, 1);
+            localStorage.setItem('momentos', JSON.stringify(momentos));
+            modalVerFoto.classList.remove('active');
+            renderizarGaleria();
+        }
+    });
+});
 
-function resetarUploadArea() {
-    uploadArea.innerHTML = `
-        <i class="fas fa-cloud-upload-alt"></i>
-        <p>clique para selecionar uma foto</p>
-    `;
-}
-
-// ============================================
-// 6. DATA
-// ============================================
-
+// ========== DATA ==========
 function atualizarData() {
     const hoje = new Date();
     const diaSemana = diasSemana[hoje.getDay()];
@@ -199,16 +186,41 @@ function atualizarData() {
     const meses = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 
                    'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
     const mes = meses[hoje.getMonth()];
-    const ano = hoje.getFullYear();
     
     diaTitulo.textContent = diaSemana;
-    dataAtual.textContent = `${dia} de ${mes} de ${ano}`;
+    dataAtual.textContent = `${dia} de ${mes}`;
+    
+    // Atualizar as tarefas quando o dia muda (meia-noite)
+    const agora = new Date();
+    const amanha = new Date(agora);
+    amanha.setDate(agora.getDate() + 1);
+    amanha.setHours(0, 0, 0, 0);
+    const tempoAteAmanha = amanha - agora;
+    
+    setTimeout(() => {
+        // CRÍTICO: Resetar tarefas concluídas no novo dia
+        resetarTarefasConcluidas();
+        atualizarData();
+        renderizarTarefasHoje();
+        renderizarSemana();
+    }, tempoAteAmanha);
 }
 
-// ============================================
-// 7. TAREFAS (CORRIGIDO)
-// ============================================
+// ========== RESETAR TAREFAS CONCLUÍDAS NO NOVO DIA ==========
+function resetarTarefasConcluidas() {
+    const hoje = diasSemana[new Date().getDay()];
+    
+    // Resetar apenas as tarefas do dia atual
+    if (tarefas[hoje]) {
+        tarefas[hoje] = tarefas[hoje].map(tarefa => ({
+            ...tarefa,
+            concluida: false
+        }));
+        salvarTarefas();
+    }
+}
 
+// ========== TAREFAS ==========
 function renderizarTarefasHoje() {
     const hoje = diasSemana[new Date().getDay()];
     const tarefasHoje = tarefas[hoje] || [];
@@ -230,9 +242,9 @@ function renderizarTarefasHoje() {
             `<span class="tarefa-horario"><i class="far fa-clock"></i> ${tarefa.horario}</span>` : '';
         
         html += `
-            <div class="tarefa-item" data-id="${tarefa.id}">
+            <div class="tarefa-item">
                 <button class="tarefa-checkbox ${tarefa.concluida ? 'checked' : ''}" 
-                     onclick="toggleConcluida('${hoje}', '${tarefa.id}')">
+                        onclick="toggleTarefa('${hoje}', '${tarefa.id}')">
                     ${tarefa.concluida ? '✓' : ''}
                 </button>
                 <div class="tarefa-conteudo">
@@ -241,7 +253,7 @@ function renderizarTarefasHoje() {
                     </span>
                     ${horarioHtml}
                 </div>
-                <button class="tarefa-opcoes" onclick="abrirOpcoesTarefa('${hoje}', '${tarefa.id}')">
+                <button class="tarefa-opcoes" onclick="abrirOpcoes('${hoje}', '${tarefa.id}')">
                     <i class="fas fa-ellipsis-v"></i>
                 </button>
             </div>
@@ -251,47 +263,44 @@ function renderizarTarefasHoje() {
     listaTarefasHoje.innerHTML = html;
 }
 
-window.toggleConcluida = (dia, id) => {
+window.toggleTarefa = (dia, id) => {
     const tarefa = tarefas[dia].find(t => t.id === id);
     if (tarefa) {
         tarefa.concluida = !tarefa.concluida;
         salvarTarefas();
         renderizarTarefasHoje();
-        renderizarDiasSemana();
+        renderizarSemana();
     }
 };
 
-window.abrirOpcoesTarefa = (dia, id) => {
+window.abrirOpcoes = (dia, id) => {
     diaEditando = dia;
     tarefaEditando = tarefas[dia].find(t => t.id === id);
     modalOpcoes.classList.add('active');
 };
 
 function salvarTarefa() {
-    const descricao = inputTarefaDescricao.value.trim();
+    const descricao = inputDescricao.value.trim();
     if (!descricao) {
         alert('Digite uma tarefa!');
         return;
     }
     
-    // CRÍTICO: Verifica se o dia está selecionado
     if (!diaEditando) {
-        alert('Selecione um dia primeiro!');
+        alert('Erro: dia não selecionado!');
         return;
     }
     
-    if (!tarefas[diaEditando]) {
-        tarefas[diaEditando] = [];
-    }
-    
     if (tarefaEditando) {
+        // EDITAR TAREFA EXISTENTE
         tarefaEditando.descricao = descricao;
-        tarefaEditando.horario = inputTarefaHorario.value || null;
+        tarefaEditando.horario = inputHorario.value || null;
     } else {
+        // ADICIONAR NOVA TAREFA
         tarefas[diaEditando].push({
             id: Date.now().toString(),
             descricao: descricao,
-            horario: inputTarefaHorario.value || null,
+            horario: inputHorario.value || null,
             concluida: false
         });
     }
@@ -299,25 +308,10 @@ function salvarTarefa() {
     salvarTarefas();
     modalTarefa.classList.remove('active');
     renderizarTarefasHoje();
-    renderizarDiasSemana();
-    
-    console.log(`Tarefa salva em ${diaEditando}:`, descricao);
+    renderizarSemana();
 }
 
-function excluirTarefa() {
-    modalOpcoes.classList.remove('active');
-    if (tarefaEditando && diaEditando) {
-        const index = tarefas[diaEditando].findIndex(t => t.id === tarefaEditando.id);
-        if (index !== -1) {
-            tarefas[diaEditando].splice(index, 1);
-            salvarTarefas();
-            renderizarTarefasHoje();
-            renderizarDiasSemana();
-        }
-    }
-}
-
-function renderizarDiasSemana() {
+function renderizarSemana() {
     let html = '';
     
     diasSemana.forEach(dia => {
@@ -325,18 +319,14 @@ function renderizarDiasSemana() {
         let tarefasHtml = '';
         
         if (tarefasDia.length === 0) {
-            tarefasHtml = `
-                <div class="sem-tarefas-dia">
-                    <span>✨ nenhuma tarefa</span>
-                </div>
-            `;
+            tarefasHtml = `<div class="sem-tarefas-dia">✨ nenhuma tarefa</div>`;
         } else {
             tarefasDia.forEach(tarefa => {
                 tarefasHtml += `
                     <div class="tarefa-item-dia">
                         <div class="tarefa-info-dia">
                             <button class="tarefa-checkbox-dia ${tarefa.concluida ? 'checked' : ''}"
-                                 onclick="toggleConcluida('${dia}', '${tarefa.id}')">
+                                    onclick="toggleTarefa('${dia}', '${tarefa.id}')">
                                 ${tarefa.concluida ? '✓' : ''}
                             </button>
                             <span class="tarefa-descricao-dia ${tarefa.concluida ? 'concluida' : ''}">
@@ -344,7 +334,7 @@ function renderizarDiasSemana() {
                             </span>
                             ${tarefa.horario ? `<span class="tarefa-horario-dia">${tarefa.horario}</span>` : ''}
                         </div>
-                        <button class="tarefa-opcoes" onclick="abrirOpcoesTarefa('${dia}', '${tarefa.id}')">
+                        <button class="tarefa-opcoes" onclick="abrirOpcoesSemana('${dia}', '${tarefa.id}')">
                             <i class="fas fa-ellipsis-v"></i>
                         </button>
                     </div>
@@ -352,13 +342,11 @@ function renderizarDiasSemana() {
             });
         }
         
-        const isSelected = diaSelecionado === dia;
-        
         html += `
-            <div class="dia-card ${isSelected ? 'selected' : ''}" data-dia="${dia}">
+            <div class="dia-card">
                 <div class="dia-card-header">
                     <span class="dia-nome">${dia}</span>
-                    <button class="btn-add-tarefa-dia" onclick="abrirAddTarefaDia('${dia}')">
+                    <button class="btn-add-tarefa-dia" onclick="adicionarTarefaDia('${dia}')">
                         <i class="fas fa-plus"></i>
                     </button>
                 </div>
@@ -372,101 +360,54 @@ function renderizarDiasSemana() {
     diasContainer.innerHTML = html;
 }
 
-// CRÍTICO: Função para adicionar tarefa a partir do card do dia
-window.abrirAddTarefaDia = (dia) => {
+// FUNÇÃO ESPECIAL PARA ABRIR OPÇÕES NA SEMANA (corrige o bug)
+window.abrirOpcoesSemana = (dia, id) => {
+    diaEditando = dia;
+    tarefaEditando = tarefas[dia].find(t => t.id === id);
+    modalOpcoes.classList.add('active');
+    console.log(`Abrindo opções para: ${dia} - ${tarefaEditando?.descricao}`);
+};
+
+window.adicionarTarefaDia = (dia) => {
     diaEditando = dia;
     tarefaEditando = null;
-    inputTarefaDescricao.value = '';
-    inputTarefaHorario.value = '';
+    inputDescricao.value = '';
+    inputHorario.value = '';
     modalTarefa.classList.add('active');
-    console.log(`Abrindo modal para adicionar tarefa em: ${dia}`);
+    console.log(`Adicionando tarefa para: ${dia}`);
 };
 
 function salvarTarefas() {
     localStorage.setItem('tarefas', JSON.stringify(tarefas));
 }
 
-// ============================================
-// 8. FOTOS
-// ============================================
-
-function handleFotoSelecionada(e) {
-    if (e.target.files && e.target.files[0]) {
-        const file = e.target.files[0];
-        
-        if (file.size > 5 * 1024 * 1024) {
-            alert('A foto é muito grande! Escolha uma com menos de 5MB.');
-            return;
-        }
-        
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            comprimirImagem(event.target.result, 1024, 0.7, (imagemComprimida) => {
-                fotoEditando = imagemComprimida;
-                uploadArea.innerHTML = `
-                    <img src="${imagemComprimida}" style="width: 100%; border-radius: 20px; max-height: 200px; object-fit: contain;">
-                `;
-            });
-        };
-        reader.readAsDataURL(file);
-    }
-}
-
-function comprimirImagem(base64Str, maxWidth, qualidade, callback) {
-    const img = new Image();
-    img.src = base64Str;
-    img.onload = () => {
-        const canvas = document.createElement('canvas');
-        let width = img.width;
-        let height = img.height;
-        
-        if (width > maxWidth) {
-            height = Math.round(height * maxWidth / width);
-            width = maxWidth;
-        }
-        
-        canvas.width = width;
-        canvas.height = height;
-        
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, width, height);
-        
-        const imagemComprimida = canvas.toDataURL('image/jpeg', qualidade);
-        callback(imagemComprimida);
-    };
-}
-
+// ========== GRATIDÃO ==========
 function salvarMomento() {
     if (!fotoEditando) {
         alert('Selecione uma foto!');
         return;
     }
     
-    momentosGratidao.push({
+    momentos.push({
         id: Date.now().toString(),
         foto: fotoEditando,
-        legenda: inputLegenda.value.trim() || 'momento especial ✨',
-        data: new Date().toISOString()
+        legenda: inputLegenda.value.trim() || 'momento especial ✨'
     });
     
-    localStorage.setItem('momentos', JSON.stringify(momentosGratidao));
+    localStorage.setItem('momentos', JSON.stringify(momentos));
     
     modalFoto.classList.remove('active');
     fotoEditando = null;
     inputFoto.value = '';
-    resetarUploadArea();
-    renderizarGratidao();
-    
-    setTimeout(() => {
-        alert('✨ Momento salvo com sucesso!');
-    }, 100);
+    uploadArea.innerHTML = '<i class="fas fa-cloud-upload-alt"></i><p>clique para selecionar uma foto</p>';
+    renderizarGaleria();
 }
 
-function renderizarGratidao() {
-    const fotosReversas = [...momentosGratidao].reverse();
+function renderizarGaleria() {
+    const fotosReversas = [...momentos].reverse();
     
     if (fotosReversas.length === 0) {
-        galeriaGratidao.innerHTML = `
+        galeria.innerHTML = `
             <div class="gratidao-placeholder" style="grid-column: span 3; aspect-ratio: 2; padding: 30px;" 
                  onclick="document.getElementById('btn-add-foto').click()">
                 <i class="fas fa-camera" style="font-size: 42px;"></i>
@@ -477,11 +418,11 @@ function renderizarGratidao() {
     }
     
     let html = '';
-    fotosReversas.forEach((momento, index) => {
-        const momentoRealIndex = momentosGratidao.length - 1 - index;
+    fotosReversas.forEach((momento, idx) => {
+        const realIndex = momentos.length - 1 - idx;
         html += `
-            <div class="gratidao-item" onclick="verMomento(${momentoRealIndex})">
-                <img src="${momento.foto}" alt="Momento especial" loading="lazy">
+            <div class="gratidao-item" onclick="verMomento(${realIndex})">
+                <img src="${momento.foto}" alt="Momento especial">
                 <div class="legenda-preview">${momento.legenda || '✨'}</div>
             </div>
         `;
@@ -494,36 +435,21 @@ function renderizarGratidao() {
         </div>
     `;
     
-    galeriaGratidao.innerHTML = html;
+    galeria.innerHTML = html;
 }
 
 window.verMomento = (index) => {
-    if (index >= 0 && index < momentosGratidao.length) {
-        const momento = momentosGratidao[index];
-        fotoExpandida.src = momento.foto;
-        fotoLegenda.textContent = momento.legenda;
-        momentoIndexAtual = index;
+    if (momentos[index]) {
+        fotoExpandida.src = momentos[index].foto;
+        fotoLegenda.textContent = momentos[index].legenda;
+        momentoIndex = index;
         modalVerFoto.classList.add('active');
     }
 };
 
-function deletarMomentoAtual() {
-    if (momentoIndexAtual !== null && momentoIndexAtual >= 0 && momentoIndexAtual < momentosGratidao.length) {
-        momentosGratidao.splice(momentoIndexAtual, 1);
-        localStorage.setItem('momentos', JSON.stringify(momentosGratidao));
-        modalVerFoto.classList.remove('active');
-        renderizarGratidao();
-        momentoIndexAtual = null;
-    }
-}
-
-// ============================================
-// 9. EXPORTAR FUNÇÕES GLOBAIS
-// ============================================
-
-window.toggleConcluida = toggleConcluida;
-window.abrirOpcoesTarefa = abrirOpcoesTarefa;
+// EXPORTAR FUNÇÕES GLOBAIS
+window.toggleTarefa = toggleTarefa;
+window.abrirOpcoes = abrirOpcoes;
+window.abrirOpcoesSemana = abrirOpcoesSemana;
+window.adicionarTarefaDia = adicionarTarefaDia;
 window.verMomento = verMomento;
-window.abrirAddTarefaDia = abrirAddTarefaDia;
-
-console.log('App carregado! Dia selecionado padrão:', diaSelecionado);
